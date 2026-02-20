@@ -1,3 +1,4 @@
+#ทำให้ Git เปลี่ยน → ArgoCD เห็น commit ใหม่ → Rollout ใหม่เกิด
 name: Build UI and bump GitOps DEV
 
 on:
