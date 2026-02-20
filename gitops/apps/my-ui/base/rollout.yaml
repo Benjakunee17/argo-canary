@@ -4,9 +4,12 @@ metadata:
   name: my-ui
 spec:
   replicas: 3
+  revisionHistoryLimit: 3
+
   selector:
     matchLabels:
       app: my-ui
+
   template:
     metadata:
       labels:
@@ -16,13 +19,25 @@ spec:
         - name: my-ui
           image: ghcr.io/Benjakunee17/my-ui:latest
           ports:
-            - containerPort: 80
+            - name: http
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 6
+
   strategy:
     canary:
       stableService: my-ui-stable
       canaryService: my-ui-canary
       steps:
         - setWeight: 20
-        - pause: { duration: 30s }
+        - pause:
+            duration: 30s
         - setWeight: 50
-        - pause: { duration: 30s }
+        - pause:
+            duration: 30s
