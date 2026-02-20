@@ -5,8 +5,3 @@ resources:
   - rollout.yaml
   - services.yaml
   - ingress.yaml
-
-images:
-  - name: ghcr.io/benjakunee17/my-ui
-    newName: ghcr.io/benjakunee17/my-ui
-    newTag: latest

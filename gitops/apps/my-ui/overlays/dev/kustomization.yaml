@@ -6,7 +6,5 @@ namespace: my-ui-dev
 resources:
   - ../../base
 
-
-
 commonLabels:
   env: dev
