@@ -12,6 +12,7 @@ spec:
     metadata:
       labels:
         app: my-ui
+        env: dev
     spec:
       containers:
         - name: my-ui
