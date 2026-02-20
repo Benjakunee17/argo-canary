@@ -16,7 +16,10 @@ spec:
         app: my-ui
     spec:
       containers:
-
+          image:
+            - name: ghcr.io/benjakunee17/my-ui
+              newName: ghcr.io/benjakunee17/my-ui
+              newTag: latest
           ports:
             - name: http
               containerPort: 80
