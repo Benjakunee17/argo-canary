@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: my-ui
-          image: ghcr.io/Benjakunee17/my-ui:latest
+          image: ghcr.io/benjakunee17/my-ui:latest
           ports:
             - name: http
               containerPort: 80

@@ -7,6 +7,6 @@ resources:
   - ingress.yaml
 
 images:
-  - name: ghcr.io/Benjakunee17/my-ui
-    newName: ghcr.io/Benjakunee17/my-ui
+  - name: ghcr.io/benjakunee17/my-ui
+    newName: ghcr.io/benjakunee17/my-ui
     newTag: latest
