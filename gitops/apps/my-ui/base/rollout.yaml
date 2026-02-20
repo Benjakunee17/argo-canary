@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
         - name: my-ui
-          image: my-ui:local
-          imagePullPolicy: Never
+          image: ghcr.io/benjakunee17/my-ui:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 80
