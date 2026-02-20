@@ -1,0 +1,25 @@
+namespace: my-ui-prod
+
+resources:
+  - ../../base
+
+images:
+  - name: ghcr.io/yourorg/my-ui
+    newTag: prod-initial
+
+patches:
+  - target:
+      kind: Ingress
+      name: my-ui
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: my-ui.company.com
+
+  - target:
+      kind: Rollout
+      name: my-ui
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 6

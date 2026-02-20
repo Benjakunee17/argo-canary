@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-ui-prod
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yourorg/<YOUR-REPO>.git
+    targetRevision: main
+    path: gitops/apps/my-ui/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: my-ui-prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
