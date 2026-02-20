@@ -6,11 +6,7 @@ namespace: my-ui-dev
 resources:
   - ../../base
 
-# ให้ workflow มาแก้ newTag ตรงนี้
-images:
-  - name: ghcr.io/benjakunee17/my-ui
-    newName: ghcr.io/benjakunee17/my-ui
-    newTag: latest
+
 
 commonLabels:
   env: dev
