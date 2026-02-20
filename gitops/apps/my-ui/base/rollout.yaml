@@ -3,8 +3,7 @@ kind: Rollout
 metadata:
   name: my-ui
 spec:
-  replicas: 4
-  revisionHistoryLimit: 3
+  replicas: 3
   selector:
     matchLabels:
       app: my-ui
@@ -14,23 +13,16 @@ spec:
         app: my-ui
     spec:
       containers:
-      - name: my-ui
-        # ชื่อ image “ไม่มี tag ตายตัว” ก็ได้ แต่แนะนำใส่ placeholder ไว้
-        image: ghcr.io/yourorg/my-ui:PLACEHOLDER
-        ports:
-        - containerPort: 80
+        - name: my-ui
+          image: ghcr.io/Benjakunee17/my-ui:latest
+          ports:
+            - containerPort: 80
   strategy:
     canary:
       stableService: my-ui-stable
       canaryService: my-ui-canary
-      trafficRouting:
-        nginx:
-          stableIngress: my-ui
       steps:
-      - setWeight: 10
-      - pause: { duration: 30s }
-      - setWeight: 30
-      - pause: { duration: 30s }
-      - setWeight: 60
-      - pause: { duration: 30s }
-      - setWeight: 100
+        - setWeight: 20
+        - pause: { duration: 30s }
+        - setWeight: 50
+        - pause: { duration: 30s }
