@@ -1,13 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# namespace ของ production
 namespace: my-ui-prod
 
 resources:
   - ../../base
 
+# image ที่จะใช้ใน prod
+# ตอน promote แค่แก้ newTag บรรทัดเดียว
 images:
-  - name: ghcr.io/yourorg/my-ui
+  - name: ghcr.io/benjakuneepong/my-ui
     newTag: prod-initial
 
 patches:
+  # เปลี่ยน host เป็น domain จริงของ prod
   - target:
       kind: Ingress
       name: my-ui
@@ -16,6 +23,7 @@ patches:
         path: /spec/rules/0/host
         value: my-ui.company.com
 
+  # เพิ่ม replicas ให้ prod
   - target:
       kind: Rollout
       name: my-ui
@@ -23,3 +31,19 @@ patches:
       - op: replace
         path: /spec/replicas
         value: 6
+
+  # ทำ canary ช้ากว่า dev (ปลอดภัยกว่า)
+  - target:
+      kind: Rollout
+      name: my-ui
+    patch: |-
+      - op: replace
+        path: /spec/strategy/canary/steps
+        value:
+          - setWeight: 5
+          - pause: { duration: 60s }
+          - setWeight: 20
+          - pause: { duration: 120s }
+          - setWeight: 50
+          - pause: { duration: 180s }
+          - setWeight: 100
