@@ -10,8 +10,9 @@ resources:
 # image ที่จะใช้ใน prod
 # ตอน promote แค่แก้ newTag บรรทัดเดียว
 images:
-  - name: ghcr.io/benjakuneepong/my-ui
-    newTag: prod-initial
+  - name: ghcr.io/benjakunee17/my-ui
+    newName: ghcr.io/benjakunee17/my-ui
+    newTag: 017d608
 
 patches:
   # เปลี่ยน host เป็น domain จริงของ prod
