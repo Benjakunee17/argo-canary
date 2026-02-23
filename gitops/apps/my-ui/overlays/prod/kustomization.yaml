@@ -1,14 +1,16 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# namespace ของ production
 namespace: my-ui-prod
 
 resources:
   - ../../base
 
-# image ที่จะใช้ใน prod
-# ตอน promote แค่แก้ newTag บรรทัดเดียว
+# ใส่ label ให้ resource ทั้งหมดใน prod
+labels:
+  - pairs:
+      env: prod
+
 images:
   - name: ghcr.io/benjakunee17/my-ui
     newName: ghcr.io/benjakunee17/my-ui
@@ -33,7 +35,7 @@ patches:
         path: /spec/replicas
         value: 6
 
-  # ทำ canary ช้ากว่า dev (ปลอดภัยกว่า)
+  # ทำ canary ช้ากว่า dev
   - target:
       kind: Rollout
       name: my-ui
@@ -42,9 +44,21 @@ patches:
         path: /spec/strategy/canary/steps
         value:
           - setWeight: 5
-          - pause: { duration: 60s }
+          - pause:
+              duration: 60s
           - setWeight: 20
-          - pause: { duration: 120s }
+          - pause:
+              duration: 120s
           - setWeight: 50
-          - pause: { duration: 180s }
+          - pause:
+              duration: 180s
           - setWeight: 100
+
+  # 🔥 บังคับแก้ pod template label จาก dev → prod
+  - target:
+      kind: Rollout
+      name: my-ui
+    patch: |-
+      - op: replace
+        path: /spec/template/metadata/labels/env
+        value: prod
