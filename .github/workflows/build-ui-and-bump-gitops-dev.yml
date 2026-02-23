@@ -1,4 +1,5 @@
 #ทำให้ Git เปลี่ยน → ArgoCD เห็น commit ใหม่ → Rollout ใหม่เกิด
+
 name: Build UI and bump GitOps DEV
 
 on:
@@ -6,6 +7,7 @@ on:
     branches: ["main"]
     paths:
       - "app/**"
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -13,20 +15,39 @@ permissions:
 
 env:
   IMAGE: ghcr.io/benjakunee17/my-ui
+  DEV_KUSTOMIZE: gitops/apps/my-ui/overlays/dev/kustomization.yaml
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Compute tag
+      - name: Compute tag (SHA7)
         id: vars
-        run: echo "tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-
-      - name: Inject version into HTML (UI changes for sure)
         run: |
+          echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          echo "Using tag=${GITHUB_SHA::7}"
+          echo "IMAGE=${IMAGE}"
+
+      - name: Sanity check paths
+        run: |
+          set -eux
+          ls -la
+          ls -la app
+          test -f app/Dockerfile
+          test -f app/site/index.html
+          test -f "${DEV_KUSTOMIZE}"
+
+      - name: Inject version into HTML
+        run: |
+          set -eux
           sed -i "s/__VERSION__/${{ steps.vars.outputs.tag }}/g" app/site/index.html
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login GHCR
         uses: docker/login-action@v3
@@ -35,25 +56,49 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Docker metadata (tags/labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=${{ steps.vars.outputs.tag }}
+            type=raw,value=latest
+
       - name: Build & Push image
         uses: docker/build-push-action@v6
         with:
           context: ./app
           file: ./app/Dockerfile
           push: true
-          tags: |
-            ${{ env.IMAGE }}:${{ steps.vars.outputs.tag }}
-            ${{ env.IMAGE }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Bump DEV overlay tag
+      - name: Bump DEV overlay tag (write SHA7)
         run: |
-          FILE="gitops/apps/my-ui/overlays/dev/kustomization.yaml"
-          sed -i "s/^\\s*newTag: .*/    newTag: ${{ steps.vars.outputs.tag }}/" "$FILE"
+          set -eux
+          # ถ้าไฟล์ยังไม่มี newTag ให้ append แบบปลอดภัย
+          if grep -qE '^\s*newTag:\s*' "${DEV_KUSTOMIZE}"; then
+            sed -i "s/^\s*newTag:\s*.*/    newTag: ${{ steps.vars.outputs.tag }}/" "${DEV_KUSTOMIZE}"
+          else
+            # เติมลงท้ายใน block images (สมมติว่ามี images อยู่แล้ว)
+            # ถ้าไม่มี images block ให้คุณเพิ่มในไฟล์ kustomization.yaml ก่อน
+            echo "ERROR: newTag not found in ${DEV_KUSTOMIZE}. Please ensure images/newTag exists." >&2
+            exit 1
+          fi
 
-      - name: Commit & push
+      - name: Commit & push (only if changed)
         run: |
+          set -eux
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add gitops/apps/my-ui/overlays/dev/kustomization.yaml
-          git commit -m "dev: bump my-ui image to ${{ steps.vars.outputs.tag }}" || true
+
+          git add "${DEV_KUSTOMIZE}"
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "dev: bump my-ui image to ${{ steps.vars.outputs.tag }} [skip ci]"
           git push
