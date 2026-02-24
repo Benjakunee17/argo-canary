@@ -12,4 +12,4 @@ commonLabels:
 images:
   - name: ghcr.io/benjakunee17/my-ui
     newName: ghcr.io/benjakunee17/my-ui
-    newTag: 009133a
+    newTag: 7ddd195
