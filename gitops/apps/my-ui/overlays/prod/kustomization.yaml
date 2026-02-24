@@ -1,6 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+# namespace ของ production
 namespace: my-ui-prod
 
 resources:
@@ -11,13 +12,17 @@ labels:
   - pairs:
       env: prod
 
+# ตอน promote แค่แก้ newTag บรรทัดเดียว
 images:
   - name: ghcr.io/benjakunee17/my-ui
     newName: ghcr.io/benjakunee17/my-ui
-    newTag: 017d608
+    newTag: 017d608   # 👈 เปลี่ยนตรงนี้ตอน promote
 
 patches:
-  # เปลี่ยน host เป็น domain จริงของ prod
+
+  # -----------------------------
+  # เปลี่ยน host เป็น domain prod จริง
+  # -----------------------------
   - target:
       kind: Ingress
       name: my-ui
@@ -26,7 +31,9 @@ patches:
         path: /spec/rules/0/host
         value: my-ui.company.com
 
+  # -----------------------------
   # เพิ่ม replicas ให้ prod
+  # -----------------------------
   - target:
       kind: Rollout
       name: my-ui
@@ -35,7 +42,12 @@ patches:
         path: /spec/replicas
         value: 6
 
-  # ทำ canary ช้ากว่า dev
+  # -----------------------------
+  # ทำ Canary แบบ Production
+  # - slow
+  # - manual promote
+  # - analysis metric
+  # -----------------------------
   - target:
       kind: Rollout
       name: my-ui
@@ -44,21 +56,35 @@ patches:
         path: /spec/strategy/canary/steps
         value:
           - setWeight: 5
-          - pause:
-              duration: 60s
+          - pause: {}     # 🔥 manual approve
+
+          - analysis:
+              templates:
+                - templateName: success-rate
+
           - setWeight: 20
-          - pause:
-              duration: 120s
+          - pause: {}
+
+          - analysis:
+              templates:
+                - templateName: success-rate
+
           - setWeight: 50
-          - pause:
-              duration: 180s
+          - pause: {}
+
+          - analysis:
+              templates:
+                - templateName: success-rate
+
           - setWeight: 100
 
-  # 🔥 บังคับแก้ pod template label จาก dev → prod
+  # -----------------------------
+  # บังคับ pod template label ให้เป็น prod
+  # -----------------------------
   - target:
       kind: Rollout
       name: my-ui
     patch: |-
-      - op: replace
+      - op: add
         path: /spec/template/metadata/labels/env
         value: prod
