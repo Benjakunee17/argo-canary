@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
 metadata:
   name: success-rate
-  namespace: my-ui-prod   # หรือใส่ที่ namespace กลาง เช่น argo-rollouts ก็ได้
+  namespace: my-ui-prod
 spec:
   metrics:
     - name: success-rate
@@ -14,13 +14,18 @@ spec:
         prometheus:
           address: http://kube-prom-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
           query: |
-            sum(rate(nginx_ingress_controller_requests{
-              namespace="my-ui-prod",
-              ingress="my-ui",
-              status!~"5.."
-            }[2m]))
+            (
+              sum(rate(nginx_ingress_controller_requests{
+                exported_namespace="my-ui-prod",
+                ingress="my-ui",
+                status!~"5.."
+              }[2m]))
+            )
             /
-            sum(rate(nginx_ingress_controller_requests{
-              namespace="my-ui-prod",
-              ingress="my-ui"
-            }[2m]))
+            clamp_min(
+              sum(rate(nginx_ingress_controller_requests{
+                exported_namespace="my-ui-prod",
+                ingress="my-ui"
+              }[2m])),
+              0.0001
+            )
