@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: success-rate
+  namespace: my-ui-prod   # หรือใส่ที่ namespace กลาง เช่น argo-rollouts ก็ได้
+spec:
+  metrics:
+    - name: success-rate
+      interval: 30s
+      count: 3
+      successCondition: result[0] >= 0.99
+      failureLimit: 1
+      provider:
+        prometheus:
+          address: http://prometheus-server.monitoring.svc.cluster.local
+          query: |
+            sum(rate(nginx_ingress_controller_requests{
+              namespace="my-ui-prod",
+              ingress="my-ui",
+              status!~"5.."
+            }[2m]))
+            /
+            sum(rate(nginx_ingress_controller_requests{
+              namespace="my-ui-prod",
+              ingress="my-ui"
+            }[2m]))

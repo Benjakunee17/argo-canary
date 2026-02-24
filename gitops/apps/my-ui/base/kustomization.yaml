@@ -5,3 +5,4 @@ resources:
   - rollout.yaml
   - services.yaml
   - ingress.yaml
+  - analysis.yaml
