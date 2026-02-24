@@ -19,7 +19,6 @@ images:
     newTag: 41e84c7  # 👈 เปลี่ยนตรงนี้ตอน promote
 
 patches:
-
   # -----------------------------
   # เปลี่ยน host เป็น domain prod จริง
   # -----------------------------
@@ -56,22 +55,19 @@ patches:
         path: /spec/strategy/canary/steps
         value:
           - setWeight: 5
-          - pause: {}     # 🔥 manual approve
-
+          - pause: {}     # manual approve
           - analysis:
               templates:
                 - templateName: success-rate
 
           - setWeight: 20
-          - pause: {}
-
+          - pause: {}     # manual approve
           - analysis:
               templates:
                 - templateName: success-rate
 
           - setWeight: 50
-          - pause: {}
-
+          - pause: {}     # manual approve
           - analysis:
               templates:
                 - templateName: success-rate
@@ -79,12 +75,32 @@ patches:
           - setWeight: 100
 
   # -----------------------------
-  # บังคับ pod template label ให้เป็น prod
+  # เปิด NGINX traffic routing ให้ Rollouts
+  # - ให้ setWeight มีผลกับ ingress (stableIngress)
+  # - และถ้า analysis fail → abort แล้ว traffic จะคงที่ stable
   # -----------------------------
   - target:
       kind: Rollout
       name: my-ui
     patch: |-
       - op: add
+        path: /spec/strategy/canary/trafficRouting
+        value:
+          nginx:
+            stableIngress: my-ui
+
+      - op: add
+        path: /spec/strategy/canary/abortScaleDownDelaySeconds
+        value: 0
+
+  # -----------------------------
+  # บังคับ pod template label ให้เป็น prod
+  # (base มี env: dev อยู่แล้ว ต้องใช้ replace)
+  # -----------------------------
+  - target:
+      kind: Rollout
+      name: my-ui
+    patch: |-
+      - op: replace
         path: /spec/template/metadata/labels/env
         value: prod

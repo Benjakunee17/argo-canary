@@ -33,6 +33,14 @@ spec:
     canary:
       stableService: my-ui-stable
       canaryService: my-ui-canary
+
+      trafficRouting:
+        nginx:
+          stableIngress: my-ui
+          
+
+      abortScaleDownDelaySeconds: 0
+
       steps:
         - setWeight: 20
         - pause:
