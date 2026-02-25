@@ -39,7 +39,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/replicas
-        value: 6
+        value: 3
 
   # -----------------------------
   # ทำ Canary แบบ Production
