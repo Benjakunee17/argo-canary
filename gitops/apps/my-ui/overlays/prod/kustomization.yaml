@@ -16,7 +16,7 @@ labels:
 images:
   - name: ghcr.io/benjakunee17/my-ui
     newName: ghcr.io/benjakunee17/my-ui
-    newTag: 009133a  # 👈 เปลี่ยนตรงนี้ตอน promote
+    newTag: 7ddd195  # 👈 เปลี่ยนตรงนี้ตอน promote
 
 patches:
   # -----------------------------
