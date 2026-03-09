@@ -6,3 +6,5 @@ resources:
   - services.yaml
   - ingress.yaml
   - analysis.yaml
+  - elasticsearch.yaml
+  - kibana.yaml
