@@ -17,7 +17,7 @@ spec:
       containers:
         - name: my-ui
           image: ghcr.io/benjakunee17/my-ui:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 80
@@ -33,14 +33,10 @@ spec:
     canary:
       stableService: my-ui-stable
       canaryService: my-ui-canary
-
       trafficRouting:
         nginx:
           stableIngress: my-ui
-          
-
       abortScaleDownDelaySeconds: 0
-
       steps:
         - setWeight: 20
         - pause:

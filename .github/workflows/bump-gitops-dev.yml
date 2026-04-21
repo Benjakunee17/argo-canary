@@ -19,19 +19,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Get image tag from triggering SHA
         run: |
-          echo "TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          echo "TAG=${{ github.event.workflow_run.head_sha }}" | cut -c1-7 | xargs -I{} echo "TAG={}" >> $GITHUB_ENV
 
       - name: Update DEV newTag
         run: |
-          sed -i "s/^\s*newTag:\s*.*/    newTag: ${TAG}/" "${DEV_KUSTOMIZE}"
+          sed -i "s/^\(\s*newTag:\s*\).*/\1${TAG}/" "${DEV_KUSTOMIZE}"
 
       - name: Commit & push
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git add "${DEV_KUSTOMIZE}"
-          git commit -m "dev: bump my-ui image to ${TAG}"
+          git commit -m "dev: bump my-ui image to ${TAG}" || echo "No changes to commit"
           git push

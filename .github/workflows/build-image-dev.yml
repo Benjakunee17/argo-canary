@@ -5,7 +5,7 @@ on:
     branches: ["main"]
     paths:
       - "app/**"
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -42,3 +42,4 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE }}:${{ steps.vars.outputs.tag }}
+            ${{ env.IMAGE }}:latest
