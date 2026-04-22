@@ -24,7 +24,8 @@ jobs:
 
       - name: Get image tag from triggering SHA
         run: |
-          echo "TAG=${{ github.event.workflow_run.head_sha }}" | cut -c1-7 | xargs -I{} echo "TAG={}" >> $GITHUB_ENV
+          TAG=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)
+          echo "TAG=$TAG" >> $GITHUB_ENV
 
       - name: Update DEV newTag
         run: |
