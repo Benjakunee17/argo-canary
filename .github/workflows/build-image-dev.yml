@@ -17,8 +17,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.vars.outputs.tag }}
 
     steps:
       - uses: actions/checkout@v4
@@ -42,4 +40,3 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE }}:${{ steps.vars.outputs.tag }}
-            ${{ env.IMAGE }}:latest
